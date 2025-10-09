@@ -1,58 +1,59 @@
-import openai
-import os
-from typing import List, Dict
+# ai_learning_platform/backend/app/services/ai_service.py
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+import openai
+from backend.config.settings import settings
+from typing import Dict, List
+import json
 
 class AIService:
-    @staticmethod
-    async def generate_roadmap(user_profile: Dict, goal: str, tech_stack: List[str]) -> Dict:
-        prompt = f"""Create a personalized learning roadmap for:
-        Background: {user_profile.get('background')}
-        Current Role: {user_profile.get('current_role')}
-        Current Skills: {', '.join(user_profile.get('skills', []))}
-        Target Role: {goal}
-        Tech Stack: {', '.join(tech_stack)}
-        
-        Generate a structured learning path with 15-20 modules covering beginner to advanced levels.
-        Include module titles, descriptions, difficulty, estimated hours, and prerequisites.
-        Format as JSON."""
-        
-        response = openai.chat.completions.create(
-            model="gpt-4",
+    def __init__(self):
+        openai.api_key = settings.OPENAI_API_KEY
+
+    async def generate_roadmap(
+        self, user_profile: Dict, goal: str, tech_stack: List[str], timeline_weeks: int
+    ) -> Dict:
+        """Generates a personalized learning roadmap using an AI model."""
+        prompt = f"""
+        Generate a detailed, personalized learning roadmap for a user with the following profile:
+        - Background: {user_profile.get('background', 'N/A')}
+        - Current Role: {user_profile.get('current_role', 'N/A')}
+        - Existing Skills: {', '.join(user_profile.get('skills', []))}
+        - Target Role/Goal: {goal}
+        - Desired Tech Stack: {', '.join(tech_stack)}
+        - Timeline: {timeline_weeks} weeks
+
+        The roadmap should be structured as a JSON object with a single key "modules".
+        The "modules" value should be a list of 15-20 JSON objects, each representing a learning module.
+        Each module object must have these keys: "title", "description", "difficulty" (beginner, intermediate, or advanced), 
+        "estimated_hours" (float), and "learning_objectives" (list of strings).
+        Ensure the modules logically progress from beginner to advanced.
+        Example module: {{"title": "Intro to Python", "description": "...", "difficulty": "beginner", "estimated_hours": 4.0, "learning_objectives": ["..."]}}
+        """
+        response = await openai.chat.completions.create(
+            model=settings.OPENAI_MODEL,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
+            temperature=settings.OPENAI_TEMPERATURE,
+            max_tokens=settings.OPENAI_MAX_TOKENS,
+            response_format={"type": "json_object"},
         )
-        return response.choices[0].message.content
-    
-    @staticmethod
-    async def generate_module_content(module_title: str, user_background: str) -> str:
-        prompt = f"""Create detailed learning content for: {module_title}
-        Tailor explanations for someone with {user_background} background.
-        Include:
-        1. Concept explanation with relevant analogies
-        2. Code examples with comments
-        3. Practice exercises
-        4. Real-world applications"""
+        return json.loads(response.choices[0].message.content)
+
+    async def get_chat_response(self, message: str, context: Dict) -> str:
+        """Generates a response from the AI mentor."""
+        prompt = f"""
+        You are an AI learning mentor. A user needs help.
+        User's Background: {context.get('user_background')}
+        Current Module: {context.get('current_module_title')}
         
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7
-        )
-        return response.choices[0].message.content
-    
-    @staticmethod
-    async def chat_response(message: str, context: Dict) -> str:
-        prompt = f"""You are an AI learning mentor. User is currently on module: {context.get('current_module')}
-        Background: {context.get('user_background')}
-        Question: {message}
-        
-        Provide helpful guidance using the Socratic method - guide them to discover answers."""
-        
-        response = openai.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.8
+        User's Question: "{message}"
+
+        Your task is to guide the user to the answer using the Socratic method.
+        Do not give the direct answer. Instead, ask probing questions to help them think.
+        Keep your response concise and encouraging.
+        """
+        response = await openai.chat.completions.create(
+            model=settings.OPENAI_MODEL,
+            messages=[{"role": "system", "content": prompt}],
+            temperature=0.8,
         )
         return response.choices[0].message.content
