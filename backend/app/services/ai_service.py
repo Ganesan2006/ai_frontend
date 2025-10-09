@@ -12,7 +12,7 @@ class AIService:
     async def generate_roadmap(
         self, user_profile: Dict, goal: str, tech_stack: List[str], timeline_weeks: int
     ) -> Dict:
-        """Generates a personalized learning roadmap using an AI model."""
+        """Generates a personalized learning roadmap"""
         prompt = f"""
         Generate a detailed, personalized learning roadmap for a user with the following profile:
         - Background: {user_profile.get('background', 'N/A')}
