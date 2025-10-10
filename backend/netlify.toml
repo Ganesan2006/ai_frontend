@@ -1,0 +1,13 @@
+# netlify.toml
+
+[build]
+  # Directory to publish (e.g., your frontend build output)
+  publish = "."
+
+[functions]
+  # Directory where your serverless functions are located
+  directory = "netlify/functions/"
+
+# You can specify the Python version for your functions
+[functions."*"]
+  runtime = "python3.12"
