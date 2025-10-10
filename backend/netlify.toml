@@ -1,11 +1,9 @@
-# netlify.toml
-
+# In your root netlify.toml
 [build]
-  # Directory to publish (e.g., your frontend build output)
-  publish = "aimentor"
+  # ... other build settings
 
 [functions]
-  # Directory where your serverless functions are located
+  # Directory where your serverless functions are stored
   directory = "netlify/functions/"
 
 # You can specify the Python version for your functions
