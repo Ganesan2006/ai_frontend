@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.app.models.database_models import Base
+from app.models.database_models import Base
 import os
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./ai_learning.db")
