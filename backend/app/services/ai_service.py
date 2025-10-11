@@ -1,7 +1,7 @@
 # ai_learning_platform/backend/app/services/ai_service.py
 
 import openai
-from backend.config.settings import settings
+from config.settings import settings
 from typing import Dict, List
 import json
 
