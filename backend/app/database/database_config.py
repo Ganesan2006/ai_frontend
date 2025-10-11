@@ -2,7 +2,7 @@
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from backend.config.settings import settings
+from config.settings import settings
 import os
 
 # Create data directory if it doesn't exist
