@@ -1,7 +1,7 @@
 # ai_learning_platform/backend/config/logging_config.py
 
 from loguru import logger
-from backend.config.settings import settings
+from app.config.settings import settings
 import sys
 import os
 
