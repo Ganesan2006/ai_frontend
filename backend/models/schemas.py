@@ -3,6 +3,13 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from pydantic import BaseModel, ConfigDict
+
+class YourModelWithModelUsed(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    
+    model_used: str
+    # ... other fields
 
 # ============== User Schemas ==============
 class UserBase(BaseModel):
