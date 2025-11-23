@@ -7,7 +7,7 @@ import * as kv from "./kv_store.tsx";
 import * as db from "./database.tsx";
 
 // Initialize Hugging Face client
-const HF_TOKEN = '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';
+
 const HF_MODEL = 'mlfoundations-dev/oh-dcft-v3.1-claude-3-5-sonnet-20241022:featherless-ai';
 const hf = new HfInference(HF_TOKEN);
 
