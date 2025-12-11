@@ -11,14 +11,89 @@ st.set_page_config(
     layout="centered"
 )
 
-# Custom CSS (keep your existing CSS here)
+# Custom CSS for colorful design
 st.markdown("""
     <style>
-    /* Your existing CSS styles */
+    .main {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .stButton>button {
+        background: linear-gradient(90deg, #FF6B6B 0%, #FFE66D 100%);
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        padding: 15px 30px;
+        border-radius: 25px;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .title {
+        text-align: center;
+        color: white;
+        font-size: 48px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 10px;
+    }
+    .subtitle {
+        text-align: center;
+        color: #FFE66D;
+        font-size: 18px;
+        margin-bottom: 30px;
+    }
+    .real-news {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: slideIn 0.5s ease;
+    }
+    .fake-news {
+        background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        padding: 30px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        animation: slideIn 0.5s ease;
+    }
+    .result-text {
+        color: white;
+        font-size: 36px;
+        font-weight: bold;
+        margin: 0;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .confidence {
+        color: white;
+        font-size: 18px;
+        margin-top: 10px;
+        opacity: 0.9;
+    }
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .stTextArea textarea {
+        border-radius: 15px;
+        border: 3px solid #FFE66D;
+        font-size: 16px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# Load model only (no tokenizer needed!)
+# Load model
 @st.cache_resource
 def load_resources():
     try:
@@ -28,14 +103,22 @@ def load_resources():
         st.error(f"Error loading model: {e}")
         return None
 
-# Prediction function using one_hot
+# Prediction function - EXACTLY matching your training preprocessing
 def predict_news(text, model, vocab_size=10000, max_length=700):
-    # Encode text using one_hot (same as training)
+    """
+    Predict if news is fake or real
+    vocab_size=10000 - matches one_hot(str(text), 10000)
+    max_length=700 - matches pad_sequences(encode, maxlen=700, padding="post")
+    """
+    # Encode text using one_hot (exactly as in training)
     encoded = one_hot(str(text), vocab_size)
-    # Pad sequence
+    
+    # Pad sequence with POST padding and maxlen=700 (exactly as in training)
     padded = pad_sequences([encoded], maxlen=max_length, padding='post')
+    
     # Predict
     prediction = model.predict(padded, verbose=0)[0][0]
+    
     return prediction
 
 # Header
@@ -64,22 +147,27 @@ if model is not None:
         if news_text.strip():
             with st.spinner("🤖 AI is analyzing the news..."):
                 prediction = predict_news(news_text, model)
-                confidence = prediction if prediction > 0.5 else 1 - prediction
+                
+                # Label encoding: REAL=0, FAKE=1
+                # So if prediction < 0.5, it's closer to 0 (REAL)
+                # If prediction >= 0.5, it's closer to 1 (FAKE)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                if prediction < 0.5:
+                if prediction < 0.5:  # Closer to 0 = REAL NEWS
+                    confidence = (1 - prediction) * 100
                     st.markdown(f"""
                         <div class="real-news">
                             <p class="result-text">✅ REAL NEWS</p>
-                            <p class="confidence">Confidence: {confidence*100:.1f}%</p>
+                            <p class="confidence">Confidence: {confidence:.1f}%</p>
                         </div>
                     """, unsafe_allow_html=True)
-                else:
+                else:  # Closer to 1 = FAKE NEWS
+                    confidence = prediction * 100
                     st.markdown(f"""
                         <div class="fake-news">
                             <p class="result-text">❌ FAKE NEWS</p>
-                            <p class="confidence">Confidence: {confidence*100:.1f}%</p>
+                            <p class="confidence">Confidence: {confidence:.1f}%</p>
                         </div>
                     """, unsafe_allow_html=True)
         else:
