@@ -97,7 +97,7 @@ st.markdown("""
 @st.cache_resource
 def load_resources():
     try:
-        model = load_model('fake_news_model.keras')
+        model = load_model('fake_vs_real_news_model.keras')
         with open('tokenizer.pkl', 'rb') as f:
             tokenizer = pickle.load(f)
         return model, tokenizer
