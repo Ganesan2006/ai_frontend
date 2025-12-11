@@ -29,7 +29,7 @@ def load_resources():
         return None
 
 # Prediction function using one_hot
-def predict_news(text, model, vocab_size=10000, max_length=500):
+def predict_news(text, model, vocab_size=10000, max_length=700):
     # Encode text using one_hot (same as training)
     encoded = one_hot(str(text), vocab_size)
     # Pad sequence
