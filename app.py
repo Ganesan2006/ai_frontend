@@ -103,10 +103,11 @@ def load_resources():
         st.error(f"Error loading model: {e}")
         return None
 
-# Prediction function - EXACTLY matching your training preprocessing
+# Prediction function
 def predict_news(text, model, vocab_size=10000, max_length=700):
     """
     Predict if news is fake or real
+    Label encoding: 0=FAKE, 1=REAL
     vocab_size=10000 - matches one_hot(str(text), 10000)
     max_length=700 - matches pad_sequences(encode, maxlen=700, padding="post")
     """
@@ -116,7 +117,7 @@ def predict_news(text, model, vocab_size=10000, max_length=700):
     # Pad sequence with POST padding and maxlen=700 (exactly as in training)
     padded = pad_sequences([encoded], maxlen=max_length, padding='post')
     
-    # Predict
+    # Predict - returns probability between 0 and 1
     prediction = model.predict(padded, verbose=0)[0][0]
     
     return prediction
@@ -148,22 +149,22 @@ if model is not None:
             with st.spinner("🤖 AI is analyzing the news..."):
                 prediction = predict_news(news_text, model)
                 
-                # Label encoding: REAL=0, FAKE=1
-                # So if prediction < 0.5, it's closer to 0 (REAL)
-                # If prediction >= 0.5, it's closer to 1 (FAKE)
+                # Label encoding: 0=FAKE, 1=REAL
+                # So if prediction >= 0.5, it's closer to 1 (REAL)
+                # If prediction < 0.5, it's closer to 0 (FAKE)
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                if prediction < 0.5:  # Closer to 0 = REAL NEWS
-                    confidence = (1 - prediction) * 100
+                if prediction >= 0.5:  # Closer to 1 = REAL NEWS
+                    confidence = prediction * 100
                     st.markdown(f"""
                         <div class="real-news">
                             <p class="result-text">✅ REAL NEWS</p>
                             <p class="confidence">Confidence: {confidence:.1f}%</p>
                         </div>
                     """, unsafe_allow_html=True)
-                else:  # Closer to 1 = FAKE NEWS
-                    confidence = prediction * 100
+                else:  # Closer to 0 = FAKE NEWS
+                    confidence = (1 - prediction) * 100
                     st.markdown(f"""
                         <div class="fake-news">
                             <p class="result-text">❌ FAKE NEWS</p>
